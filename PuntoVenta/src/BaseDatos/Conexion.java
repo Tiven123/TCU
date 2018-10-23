@@ -16,7 +16,7 @@ public class Conexion {
 
     // Almacenamos los datos de la conexion
     String url = "localhost:3000";
-    String usuario = "root";
+    String usuario = "postgres";
     String contrasena = "1234";
 
     public void Iniciar() {

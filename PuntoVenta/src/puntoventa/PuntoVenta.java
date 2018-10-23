@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package puntoventa;
+import Vistas.VistaUsuario;
 
 /**
  *
@@ -16,6 +17,8 @@ public class PuntoVenta {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        VistaUsuario vista = new VistaUsuario();
+        vista.setVisible(true);
     }
     
 }
