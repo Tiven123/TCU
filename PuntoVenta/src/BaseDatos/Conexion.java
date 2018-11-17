@@ -14,29 +14,23 @@ import java.sql.DriverManager;
  */
 public class Conexion {
 
-    // Almacenamos los datos de la conexion
-    String url = "localhost:3000";
-    String usuario = "postgres";
-    String contrasena = "1234";
+    private static final String DRIVER = "org.postgresql.Driver";
+    private static final String TIPO = "jdbc:postgresql://";
+    private static final String SERVER = "localhost";
+    private static final String PUERTO = "5432";
+    private static final String DB = "tcu";
+    private static final String USER = "postgres";
+    private static final String PASS = "1234";
 
-    public void Iniciar() {
+    public static Connection iniciar() throws Exception {
+        Connection c = null;
         try {
-            // We register the PostgreSQL driver
-            // Registramos el driver de PostgresSQL
-            try {
-                Class.forName("org.postgresql.Driver");
-            } catch (ClassNotFoundException ex) {
-                System.out.println("Error al registrar el driver de PostgreSQL: " + ex);
-            }
-            Connection connection = null;
-            // Database connect
-            // Conectamos con la base de datos 
-            connection = DriverManager.getConnection(url, usuario, contrasena);
-
-            boolean valid = connection.isValid(50000);
-            System.out.println(valid ? "TEST OK" : "TEST FAIL");
-        } catch (java.sql.SQLException sqle) {
-            System.out.println("Error: " + sqle);
+            Class.forName(DRIVER);
+            c = DriverManager.getConnection(TIPO + SERVER + ":" + PUERTO
+                    + "/" + DB, USER, PASS);
+            return c;
+        } catch (Exception e) {
+            throw e;
         }
     }
 }

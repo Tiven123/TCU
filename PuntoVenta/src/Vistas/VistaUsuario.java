@@ -4,20 +4,53 @@
  * and open the template in the editor.
  */
 package Vistas;
+
 import Entidades.Usuario;
 import Validaciones.UsuarioVali;
+import java.util.LinkedList;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author Steven Ortiz
  */
 public class VistaUsuario extends javax.swing.JFrame {
+
     UsuarioVali usuarioValidaciones = new UsuarioVali();
+
     /**
      * Creates new form Usuario
      */
     public VistaUsuario() {
         initComponents();
+        cargarTabla();
+    }
+
+    private void cargarTabla() {
+        limpiarTabla();
+        DefaultTableModel modelo = (DefaultTableModel) jtable.getModel();
+        LinkedList<Usuario> usuarios = usuarioValidaciones.buscar("");
+        for (int i = 0; i < usuarios.size(); i++) {
+            String[] fila = {
+                usuarios.get(i).getId() + "",
+                usuarios.get(i).getNombre(),
+                usuarios.get(i).getApellidos(),
+                usuarios.get(i).getUsuario(),
+                usuarios.get(i).getContrasena(),
+                usuarios.get(i).getRol()};
+            modelo.addRow(fila);
+        }
+        jtable.setModel(modelo);
+    }
+
+    private void limpiarTabla() {
+        DefaultTableModel modelo = (DefaultTableModel) jtable.getModel();
+        int filas = modelo.getRowCount();
+
+        for (int i = 0; i < filas; i++) {
+            modelo.removeRow(0);
+        }
+        jtable.setModel(modelo);
     }
 
     /**
@@ -44,7 +77,7 @@ public class VistaUsuario extends javax.swing.JFrame {
         btnCancelar = new javax.swing.JButton();
         btnLimpiar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jtable = new javax.swing.JTable();
         btnBuscarNombre = new javax.swing.JButton();
         btnModificar = new javax.swing.JButton();
         btnEliminar = new javax.swing.JButton();
@@ -78,24 +111,15 @@ public class VistaUsuario extends javax.swing.JFrame {
 
         btnLimpiar.setText("Limpiar");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jtable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+
             },
             new String [] {
                 "Id", "Nombre", "Apellido", "Usuario", "Contraseña", "Rol"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(jtable);
 
         btnBuscarNombre.setText("Buscar por Nombre");
 
@@ -146,10 +170,6 @@ public class VistaUsuario extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(lblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(166, 166, 166))
                             .addComponent(jScrollPane1)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(lblRol)
@@ -162,13 +182,17 @@ public class VistaUsuario extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(btnCancelar)))))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(208, 208, 208)
+                .addComponent(lblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lblTitulo)
                 .addGap(18, 18, 18)
+                .addComponent(lblTitulo)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblNombre)
                     .addComponent(txtNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -199,14 +223,14 @@ public class VistaUsuario extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
     /**
-     * 
-     * @param evt 
+     *
+     * @param evt
      */
     private void btnCrearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCrearActionPerformed
         //crear usuario con los datos del formulario
         //Se crea una instancia de la clase usuario
         Usuario NuevoUsuario = new Usuario();
-        
+
         //Se obtienen los datos de cada campo del formulario y se le asignan al objeto usuario
         NuevoUsuario.setNombre(txtNombre.getText().toUpperCase().trim());
         NuevoUsuario.setApellidos(txtApellidos.getText().toUpperCase().trim());
@@ -215,13 +239,14 @@ public class VistaUsuario extends javax.swing.JFrame {
         String contrasena = new String(txtContrasena.getPassword());
         NuevoUsuario.setContrasena(contrasena.trim());
         NuevoUsuario.setRol(cbRol.getSelectedItem().toString());
+        //valida los datos del usuario
         try {
-             System.out.println(usuarioValidaciones.crearUsuario(NuevoUsuario));
+            System.out.println(usuarioValidaciones.crearUsuario(NuevoUsuario));
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
 
-        
+        cargarTabla();
     }//GEN-LAST:event_btnCrearActionPerformed
 
     /**
@@ -268,7 +293,7 @@ public class VistaUsuario extends javax.swing.JFrame {
     private javax.swing.JButton btnModificar;
     private javax.swing.JComboBox<String> cbRol;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable jtable;
     private javax.swing.JLabel lblApellidos;
     private javax.swing.JLabel lblContrasena;
     private javax.swing.JLabel lblNombre;
