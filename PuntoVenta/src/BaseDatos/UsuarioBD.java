@@ -59,11 +59,35 @@ public class UsuarioBD {
     public Usuario buscarNombre(String nombre){
         return null;
     }
-    public boolean modificar(Usuario nuevoUsuario){
-        return true;
+    public boolean modificar(Usuario usuarioN) throws SQLException, Exception {
+        try (Connection con = Conexion.iniciar()) {
+            String sql = "update desarrollo.usuario set nombre = ?, apellidos = ?, "
+                    + "usuario = ?, contrasena = ?, rol = ? where id = ? ";
+            PreparedStatement smt = con.prepareStatement(sql);
+            smt.setString(1, usuarioN.getNombre());
+            smt.setString(2, usuarioN.getApellidos());
+            smt.setString(3, usuarioN.getUsuario());
+            smt.setString(4, usuarioN.getContrasena());
+            smt.setString(5, usuarioN.getRol());
+            smt.setInt(6, usuarioN.getId());
+           return smt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw ex;
+        }
     }
-    public boolean eliminar(Usuario nuevoUsuario){
-        return true;
+    public boolean eliminar(int id){
+        try (Connection con = Conexion.iniciar()) {
+            String sql = "delete from desarrollo.usuario where id = ? ";
+            PreparedStatement smt = con.prepareStatement(sql);
+            smt.setInt(1, id);
+            smt.executeUpdate();
+            return true;
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            return false;
+        }
     }
     
 }

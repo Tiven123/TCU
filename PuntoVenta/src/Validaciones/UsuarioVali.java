@@ -55,4 +55,11 @@ public class UsuarioVali {
             return resultado;
         }
     }
+    public boolean eliminar(int id) throws Exception{
+        System.out.println(id);
+        if (id <= 0) {
+            throw new Exception("Seleccione un usuario");
+        }
+        return usuarioBaseDatos.eliminar(id);
+    }
 }

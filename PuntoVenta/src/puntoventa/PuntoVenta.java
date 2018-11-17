@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package puntoventa;
-import Vistas.VistaUsuario;
+import Vistas.Principal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class PuntoVenta {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        VistaUsuario vista = new VistaUsuario();
+        Principal vista = new Principal();
         vista.setVisible(true);
     }
     
