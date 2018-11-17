@@ -8,6 +8,10 @@ package Vistas;
 import Entidades.Usuario;
 import Validaciones.UsuarioVali;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -17,6 +21,8 @@ import javax.swing.table.DefaultTableModel;
 public class VistaUsuario extends javax.swing.JFrame {
 
     UsuarioVali usuarioValidaciones = new UsuarioVali();
+    JFrame anterior;
+    private int id;
 
     /**
      * Creates new form Usuario
@@ -24,6 +30,14 @@ public class VistaUsuario extends javax.swing.JFrame {
     public VistaUsuario() {
         initComponents();
         cargarTabla();
+        this.setLocationRelativeTo(null);
+    }
+
+    public VistaUsuario(JFrame vistaAnterior) {
+        initComponents();
+        cargarTabla();
+        this.setLocationRelativeTo(null);
+        anterior = vistaAnterior;
     }
 
     private void cargarTabla() {
@@ -53,6 +67,16 @@ public class VistaUsuario extends javax.swing.JFrame {
         jtable.setModel(modelo);
     }
 
+    private void limpiar() {
+        cargarTabla();
+        txtNombre.setText("");
+        txtApellidos.setText("");
+        txtUsuario.setText("");
+        txtContrasena.setText("");
+        txtBuscarNombre.setText("");
+        cbRol.setSelectedIndex(0);
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -74,7 +98,7 @@ public class VistaUsuario extends javax.swing.JFrame {
         btnCrear = new javax.swing.JButton();
         cbRol = new javax.swing.JComboBox<>();
         lblRol = new javax.swing.JLabel();
-        btnCancelar = new javax.swing.JButton();
+        btnVolver = new javax.swing.JButton();
         btnLimpiar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jtable = new javax.swing.JTable();
@@ -104,12 +128,27 @@ public class VistaUsuario extends javax.swing.JFrame {
         });
 
         cbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "EMPLEADO", "GERENTE", "ADMINISTRADOR" }));
+        cbRol.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbRolActionPerformed(evt);
+            }
+        });
 
         lblRol.setText("Rol:");
 
-        btnCancelar.setText("Cancelar");
+        btnVolver.setText("Volver");
+        btnVolver.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnVolverActionPerformed(evt);
+            }
+        });
 
         btnLimpiar.setText("Limpiar");
+        btnLimpiar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimpiarActionPerformed(evt);
+            }
+        });
 
         jtable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -119,13 +158,33 @@ public class VistaUsuario extends javax.swing.JFrame {
                 "Id", "Nombre", "Apellido", "Usuario", "Contraseña", "Rol"
             }
         ));
+        jtable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jtableMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jtable);
 
         btnBuscarNombre.setText("Buscar por Nombre");
+        btnBuscarNombre.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarNombreActionPerformed(evt);
+            }
+        });
 
         btnModificar.setText("Modificar");
+        btnModificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModificarActionPerformed(evt);
+            }
+        });
 
         btnEliminar.setText("Eliminar");
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEliminarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -180,7 +239,7 @@ public class VistaUsuario extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(txtBuscarNombre)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnCancelar)))))
+                                .addComponent(btnVolver)))))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addGap(208, 208, 208)
@@ -212,7 +271,7 @@ public class VistaUsuario extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblRol)
                     .addComponent(cbRol, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCancelar)
+                    .addComponent(btnVolver)
                     .addComponent(btnBuscarNombre)
                     .addComponent(txtBuscarNombre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -243,11 +302,115 @@ public class VistaUsuario extends javax.swing.JFrame {
         try {
             System.out.println(usuarioValidaciones.crearUsuario(NuevoUsuario));
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            JOptionPane.showMessageDialog(null, e.getMessage());
         }
 
-        cargarTabla();
+        limpiar();
     }//GEN-LAST:event_btnCrearActionPerformed
+
+    private void btnBuscarNombreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarNombreActionPerformed
+        limpiarTabla();
+        DefaultTableModel modelo = (DefaultTableModel) jtable.getModel();
+        LinkedList<Usuario> usuarios = usuarioValidaciones.buscar("");
+        String nombreBuscar = txtBuscarNombre.getText().toUpperCase().trim();
+        for (int i = 0; i < usuarios.size(); i++) {
+            String nombre = " " + usuarios.get(i).getNombre() + " " + usuarios.get(i).getApellidos();
+            System.out.println(nombre.indexOf(nombreBuscar));
+            if (nombre.indexOf(nombreBuscar) > 0) {
+                String[] fila = {
+                    usuarios.get(i).getId() + "",
+                    usuarios.get(i).getNombre(),
+                    usuarios.get(i).getApellidos(),
+                    usuarios.get(i).getUsuario(),
+                    usuarios.get(i).getContrasena(),
+                    usuarios.get(i).getRol()};
+                modelo.addRow(fila);
+            }
+        }
+        jtable.setModel(modelo);
+    }//GEN-LAST:event_btnBuscarNombreActionPerformed
+
+    private void jtableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jtableMouseClicked
+        // TODO add your handling code here:
+        int fila = jtable.getSelectedRow();
+        id = Integer.parseInt(jtable.getValueAt(fila, 0).toString());
+        txtNombre.setText(jtable.getValueAt(fila, 1).toString());
+        txtApellidos.setText(jtable.getValueAt(fila, 2).toString());
+        txtUsuario.setText(jtable.getValueAt(fila, 3).toString());
+        txtContrasena.setText(jtable.getValueAt(fila, 4).toString());
+        if (jtable.getValueAt(fila, 5).toString().equals("ADMINISTRADOR")) {
+            cbRol.setSelectedIndex(2);
+        }
+        if (jtable.getValueAt(fila, 5).toString().equals("GERENTE")) {
+            cbRol.setSelectedIndex(1);
+        } else {
+            cbRol.setSelectedIndex(0);
+        }
+    }//GEN-LAST:event_jtableMouseClicked
+
+    private void cbRolActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbRolActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cbRolActionPerformed
+
+    private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
+        limpiar();
+    }//GEN-LAST:event_btnLimpiarActionPerformed
+
+    private void btnVolverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVolverActionPerformed
+        // TODO add your handling code here:
+        anterior.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnVolverActionPerformed
+
+    private void btnModificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModificarActionPerformed
+        //crear usuario con los datos del formulario
+        //Se crea una instancia de la clase usuario
+        Usuario NuevoUsuario = new Usuario();
+
+        //Se obtienen los datos de cada campo del formulario y se le asignan al objeto usuario
+        NuevoUsuario.setId(id);
+        NuevoUsuario.setNombre(txtNombre.getText().toUpperCase().trim());
+        NuevoUsuario.setApellidos(txtApellidos.getText().toUpperCase().trim());
+        NuevoUsuario.setUsuario(txtUsuario.getText().trim());
+        //se guarda la contrasena en un string ya que es un arreglo de chart
+        String contrasena = new String(txtContrasena.getPassword());
+        NuevoUsuario.setContrasena(contrasena.trim());
+        NuevoUsuario.setRol(cbRol.getSelectedItem().toString());
+        //valida los datos del usuario
+        try {
+            if (usuarioValidaciones.crearUsuario(NuevoUsuario)) {
+                JOptionPane.showMessageDialog(null, "Usuario modificado con exito");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error verifique los datos");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage());
+        }
+
+        limpiar();
+
+    }//GEN-LAST:event_btnModificarActionPerformed
+
+    private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        if (id == 0) {
+            JOptionPane.showMessageDialog(null, "Error debe seleccionar un usuario");
+        } else {
+            int respuesta = JOptionPane.showConfirmDialog(null, "¿Esta seguro?", "Alerta!", JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE);
+            if (respuesta == 0) {
+                try {
+                    if (usuarioValidaciones.eliminar(id)) {
+                        JOptionPane.showMessageDialog(null, "Operación realizada correctamente");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error al realizar operacion");
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+
+            }
+        }
+        limpiar();
+    }//GEN-LAST:event_btnEliminarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -286,11 +449,11 @@ public class VistaUsuario extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBuscarNombre;
-    private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnCrear;
     private javax.swing.JButton btnEliminar;
     private javax.swing.JButton btnLimpiar;
     private javax.swing.JButton btnModificar;
+    private javax.swing.JButton btnVolver;
     private javax.swing.JComboBox<String> cbRol;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jtable;
