@@ -6,12 +6,15 @@
 package Vistas;
 
 import Entidades.Producto;
+import Entidades.Usuario;
 import Validaciones.ProductoVali;
 import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.event.ListDataListener;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -48,7 +51,7 @@ public class Principal extends javax.swing.JFrame {
         lblHora = new javax.swing.JLabel();
         txtHora = new javax.swing.JFormattedTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tbDetalle = new javax.swing.JTable();
         lblCajero = new javax.swing.JLabel();
         txtCajero = new javax.swing.JTextField();
         btnBuscar = new javax.swing.JButton();
@@ -88,18 +91,31 @@ public class Principal extends javax.swing.JFrame {
         txtHora.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(java.text.DateFormat.getTimeInstance())));
         txtHora.setText("10:23:25 PM");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tbDetalle.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Codigo", "Descripcion", "Cantidad", "Impuesto"
+                "Codigo", "Descripcion", "Cantidad", "Precio Unitario", "Total", "Impuesto"
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, true, true, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tbDetalle.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                tbDetalleKeyTyped(evt);
+            }
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                tbDetalleKeyPressed(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tbDetalle);
 
         lblCajero.setText("Cajero:");
 
@@ -211,6 +227,7 @@ public class Principal extends javax.swing.JFrame {
                                         .addComponent(lblHora)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(txtHora, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, 0)
                                         .addComponent(lblCajero)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -283,25 +300,49 @@ public class Principal extends javax.swing.JFrame {
     }//GEN-LAST:event_txtCodigoKeyPressed
 
     private void cbBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbBuscarActionPerformed
-        System.out.println(cbBuscar.getSelectedItem().toString());
+        Producto nuevo = (Producto) cbBuscar.getSelectedItem();
+        DefaultTableModel modelo = (DefaultTableModel) tbDetalle.getModel();
+
+        String[] fila = {
+            nuevo.getCodigo() + "",
+            nuevo.getDescripcion() + "",
+            "1",
+            nuevo.getPrecio_venta() + "",
+            nuevo.getPrecio_venta() + "",
+            nuevo.isImpuestos() + ""
+            };
+        modelo.addRow(fila);
+
+        tbDetalle.setModel(modelo);
     }//GEN-LAST:event_cbBuscarActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
         if (!txtCodigo.getText().equals("")) {
-           
-           
+
         } else if (!txtDescripcion.getText().equals("")) {
             String nombre = txtDescripcion.getText().trim().toUpperCase();
             LinkedList<Producto> lista = productoVali.buscar(nombre);
-            System.out.println(""+lista.size());
+            DefaultComboBoxModel modelo = new DefaultComboBoxModel();
             for (int i = 0; i < lista.size(); i++) {
-                Producto nuevo = (Producto)lista.get(i);
-                cbBuscar.addItem(nuevo.toString());
+
+                modelo.addElement(lista.get(i));
+
             }
+            cbBuscar.setModel(modelo);
         } else {
         }
 
     }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void tbDetalleKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbDetalleKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            System.out.println("holi");
+        }
+    }//GEN-LAST:event_tbDetalleKeyPressed
+
+    private void tbDetalleKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tbDetalleKeyTyped
+        System.out.println("holi");
+    }//GEN-LAST:event_tbDetalleKeyTyped
 
     /**
      * @param args the command line arguments
@@ -362,13 +403,13 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem6;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JLabel lblCajero;
     private javax.swing.JLabel lblCliente;
     private javax.swing.JLabel lblCodigo;
     private javax.swing.JLabel lblDescripcion;
     private javax.swing.JLabel lblFecha;
     private javax.swing.JLabel lblHora;
+    private javax.swing.JTable tbDetalle;
     private javax.swing.JTextField txtCajero;
     private javax.swing.JTextField txtCliente;
     private javax.swing.JTextField txtCodigo;
