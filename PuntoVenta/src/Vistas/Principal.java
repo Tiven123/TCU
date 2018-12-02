@@ -5,11 +5,15 @@
  */
 package Vistas;
 
+import Entidades.DetalleFactura;
 import Entidades.Factura;
 import Entidades.Producto;
+import Validaciones.FacturaVali;
 
 import Validaciones.ProductoVali;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,6 +31,10 @@ public class Principal extends javax.swing.JFrame {
 
     private final ProductoVali productoVali = new ProductoVali();
     private Factura factura = new Factura();
+    private boolean pagoefectivo;
+    private boolean pagotarjeta;
+    private LinkedList<DetalleFactura> listaDetalle;
+    private FacturaVali facturaVali = new FacturaVali();
 
     /**
      * Creates new form Principal
@@ -44,6 +52,7 @@ public class Principal extends javax.swing.JFrame {
         this.setTitle("SOPOST-Principal");
         txtCodigo.requestFocus();
         txtCodigo.selectAll();
+        cbEfectivo.setSelected(true);
     }
 
     private void ajustarTabla() {
@@ -55,6 +64,7 @@ public class Principal extends javax.swing.JFrame {
     }
 
     private void agregarLinea() {
+        btnFacturar.setEnabled(true);
         Producto nuevo = (Producto) cbBuscar.getSelectedItem();
         DefaultTableModel modelo = (DefaultTableModel) tbDetalle.getModel();
         boolean encontrado = true;
@@ -84,7 +94,43 @@ public class Principal extends javax.swing.JFrame {
             modelo.addRow(fila);
             tbDetalle.setModel(modelo);
         }
+        desglose();
+    }
 
+    private void desglose() {
+        listaDetalle = new LinkedList<DetalleFactura>();
+        double exento = 0;
+        double gravado = 0;
+        double impuestos = 0;
+        double total = 0;
+        for (int i = 0; i < tbDetalle.getRowCount(); i++) {
+            String impuesto = tbDetalle.getValueAt(i, 5).toString();
+            if (impuesto.equals("true")) {
+                gravado += Double.parseDouble(tbDetalle.getValueAt(i, 4).toString());
+            } else {
+                exento += Double.parseDouble(tbDetalle.getValueAt(i, 4).toString());
+            }
+            DetalleFactura detalle = new DetalleFactura();
+            detalle.setCodigoProducto(tbDetalle.getValueAt(i, 0).toString());
+            detalle.setCantidad(Integer.parseInt(tbDetalle.getValueAt(i, 1).toString()));
+            listaDetalle.add(detalle);
+        }
+        gravado /= 1.13;
+        BigDecimal gravado2 = new BigDecimal(gravado);
+        gravado2 = gravado2.setScale(2, RoundingMode.HALF_UP);
+        impuestos = gravado * 0.13;
+        BigDecimal impuestos2 = new BigDecimal(gravado);
+        impuestos2 = impuestos2.setScale(2, RoundingMode.HALF_UP);
+        total = gravado + impuestos + exento;
+        factura.setSubtotal_exento(exento);
+        factura.setSubtotal_gravado(gravado2.doubleValue());
+        factura.setMonto_impuestos(impuestos2.doubleValue());
+        factura.setTotal(total);
+        txtExento.setText("" + exento);
+        txtGravado.setText("" + gravado2.doubleValue());
+        txtImpuestos.setText("" + impuestos2.doubleValue());
+        txtTotal.setText("" + total);
+        fechaHora();
     }
 
     private void limpiar() {
@@ -127,10 +173,34 @@ public class Principal extends javax.swing.JFrame {
         DateFormat hourFormat = new SimpleDateFormat("hh:mm:ss a");
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat hourdateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        txtHora.setText(""+ hourFormat.format(date));
+        txtHora.setText("" + hourFormat.format(date));
         txtFecha.setText("" + dateFormat.format(date));
         Timestamp fechaHora = new Timestamp(System.currentTimeMillis());
         factura.setFecha_hora(fechaHora);
+    }
+
+    private void pago() {
+        if (cbEfectivo.isSelected() & !cbTarjeta.isSelected()) {
+            String recibido = (String) JOptionPane.showInputDialog(null, "Ingrese el Monto Recibido", "Recepcion de Efectivo", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                double efectivo = Double.parseDouble(recibido);
+                if (efectivo >= factura.getTotal()) {
+                    double vuelto = efectivo - factura.getTotal();
+                    if (vuelto > 0) {
+                        JOptionPane.showMessageDialog(null, "El vuelto es de " + vuelto, "Vuelto", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Error Inserte un monto mayor al total ", "Error en monto", JOptionPane.ERROR_MESSAGE);
+                    pago();
+                }
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Error Inserte un monto Ejemplo: 100.25 ", "Error en monto", JOptionPane.ERROR_MESSAGE);
+                pago();
+            }
+            //double efectivo = Double.parseDouble(recibido);
+        }
     }
 
     /**
@@ -268,10 +338,20 @@ public class Principal extends javax.swing.JFrame {
         btnEliminarLinea.setEnabled(false);
 
         cbEfectivo.setText("Efectivo");
+        cbEfectivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbEfectivoActionPerformed(evt);
+            }
+        });
 
         lblPago.setText("Forma de Pago:");
 
         cbTarjeta.setText("Tarjeta");
+        cbTarjeta.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbTarjetaActionPerformed(evt);
+            }
+        });
 
         btnDescuento.setText("Descuento");
         btnDescuento.setEnabled(false);
@@ -296,20 +376,10 @@ public class Principal extends javax.swing.JFrame {
         lblExcento.setText("Subtotal Excento:");
 
         txtExento.setEditable(false);
-        txtExento.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtExentoActionPerformed(evt);
-            }
-        });
 
         lblGravado.setText("Subtotal Gravado:");
 
         txtGravado.setEditable(false);
-        txtGravado.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtGravadoActionPerformed(evt);
-            }
-        });
 
         lblImpuestos.setText("Impuestos:");
 
@@ -541,14 +611,6 @@ public class Principal extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_txtDescripcionKeyPressed
 
-    private void txtGravadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtGravadoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtGravadoActionPerformed
-
-    private void txtExentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtExentoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtExentoActionPerformed
-
     private void btnDescuentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDescuentoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnDescuentoActionPerformed
@@ -557,8 +619,24 @@ public class Principal extends javax.swing.JFrame {
         fechaHora();
         factura.setNombre_cliente(txtCliente.getText().toUpperCase().trim());
         factura.setNombre_cajero(txtCajero.getText().toUpperCase().trim());
-        
+        pago();
+        try {
+            if (facturaVali.crear(factura)) {
+                JOptionPane.showMessageDialog(null, "Exito");
+            }
+        } catch (Exception e) {
+        }
+
+
     }//GEN-LAST:event_btnFacturarActionPerformed
+
+    private void cbEfectivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbEfectivoActionPerformed
+        pagoefectivo = cbEfectivo.isSelected();
+    }//GEN-LAST:event_cbEfectivoActionPerformed
+
+    private void cbTarjetaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTarjetaActionPerformed
+        pagotarjeta = cbTarjeta.isSelected();
+    }//GEN-LAST:event_cbTarjetaActionPerformed
 
     /**
      * @param args the command line arguments
