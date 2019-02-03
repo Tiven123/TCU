@@ -5,12 +5,15 @@
  */
 package Vistas;
 
+import BaseDatos.Conexion;
 import Entidades.DetalleFactura;
 import Entidades.Factura;
 import Entidades.Producto;
+import Reportes.inventarios;
 import Validaciones.FacturaVali;
 
 import Validaciones.ProductoVali;
+import com.sun.jndi.ldap.Connection;
 import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +25,12 @@ import java.util.LinkedList;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.view.JasperViewer;
 
 /**
  *
@@ -64,37 +73,41 @@ public class Principal extends javax.swing.JFrame {
     }
 
     private void agregarLinea() {
-        btnFacturar.setEnabled(true);
-        Producto nuevo = (Producto) cbBuscar.getSelectedItem();
-        DefaultTableModel modelo = (DefaultTableModel) tbDetalle.getModel();
-        boolean encontrado = true;
-        for (int i = 0; i < tbDetalle.getRowCount(); i++) {
-            String codigo = tbDetalle.getValueAt(i, 0).toString();
-            if (codigo.equals(nuevo.getCodigo())) {
-                int cantidad = Integer.parseInt(tbDetalle.getValueAt(i, 1).toString());
-                cantidad += 1;
-                double precio = Double.parseDouble(tbDetalle.getValueAt(i, 3).toString());
-                double total = precio * cantidad;
-                tbDetalle.setValueAt(cantidad + "", i, 1);
-                tbDetalle.setValueAt(total + "", i, 4);
-                encontrado = false;
+        if (cbBuscar.getItemCount() > 0) {
+            btnFacturar.setEnabled(true);
+            Producto nuevo = (Producto) cbBuscar.getSelectedItem();
+            DefaultTableModel modelo = (DefaultTableModel) tbDetalle.getModel();
+            boolean encontrado = true;
+            for (int i = 0; i < tbDetalle.getRowCount(); i++) {
+                String codigo = tbDetalle.getValueAt(i, 0).toString();
+                if (codigo.equals(nuevo.getCodigo())) {
+                    int cantidad = Integer.parseInt(tbDetalle.getValueAt(i, 1).toString());
+                    cantidad += 1;
+                    double precio = Double.parseDouble(tbDetalle.getValueAt(i, 3).toString());
+                    double total = precio * cantidad;
+                    tbDetalle.setValueAt(cantidad + "", i, 1);
+                    tbDetalle.setValueAt(total + "", i, 4);
+                    encontrado = false;
+                }
             }
-        }
 
-        if (encontrado) {
+            if (encontrado) {
 
-            String[] fila = {
-                nuevo.getCodigo() + "",
-                "1",
-                nuevo.getDescripcion() + "",
-                nuevo.getPrecio_venta() + "",
-                nuevo.getPrecio_venta() + "",
-                nuevo.isImpuestos() + ""
-            };
-            modelo.addRow(fila);
-            tbDetalle.setModel(modelo);
+                String[] fila = {
+                    nuevo.getCodigo() + "",
+                    "1",
+                    nuevo.getDescripcion() + "",
+                    nuevo.getPrecio_venta() + "",
+                    nuevo.getPrecio_venta() + "",
+                    nuevo.isImpuestos() + ""
+                };
+                modelo.addRow(fila);
+                tbDetalle.setModel(modelo);
+            }
+            desglose();
+        } else {
+            JOptionPane.showMessageDialog(null, "No se encontraron resultados para esta busqueda", "No Resultados", JOptionPane.INFORMATION_MESSAGE);
         }
-        desglose();
     }
 
     private void desglose() {
@@ -131,6 +144,7 @@ public class Principal extends javax.swing.JFrame {
         txtImpuestos.setText("" + impuestos2.doubleValue());
         txtTotal.setText("" + total);
         fechaHora();
+        factura.setLista(listaDetalle);
     }
 
     private void limpiar() {
@@ -148,22 +162,24 @@ public class Principal extends javax.swing.JFrame {
 
                 modelo.addElement(lista.get(i));
             }
+            cbBuscar.setModel(modelo);
         }
-        cbBuscar.setModel(modelo);
     }
 
     private void buscar() {
-        if (!txtCodigo.getText().equals("")) {
+        if (!txtCodigo.getText().equals("") & txtDescripcion.getText().equals("")) {
             String codigo = txtCodigo.getText();
             LinkedList<Producto> lista = productoVali.buscarCodigo(codigo);
             cargarBusqueda(lista);
             agregarLinea();
 
-        } else if (!txtDescripcion.getText().equals("")) {
+        } else if (!txtDescripcion.getText().equals("") & txtCodigo.getText().equals("")) {
             String nombre = txtDescripcion.getText().trim().toUpperCase();
             LinkedList<Producto> lista = productoVali.buscarNombre(nombre);
             cargarBusqueda(lista);
         } else {
+            JOptionPane.showMessageDialog(null, "Error Solo se puede reazilar la busqueda \npor una de las siguientes opciones: \n"
+                    + "Codigo \nDescripcion", "Error", JOptionPane.ERROR_MESSAGE);
         }
         limpiar();
     }
@@ -302,6 +318,7 @@ public class Principal extends javax.swing.JFrame {
         lblCajero.setText("Cajero:");
 
         txtCajero.setEditable(false);
+        txtCajero.setText("Steven");
 
         btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
@@ -389,6 +406,7 @@ public class Principal extends javax.swing.JFrame {
         lblTotal.setText("Total a Pagar:");
 
         txtTotal.setEditable(false);
+        txtTotal.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
 
         jMenu1.setText("Mantenimientos");
 
@@ -419,7 +437,12 @@ public class Principal extends javax.swing.JFrame {
 
         jMenu3.setText("Reporte");
 
-        jMenuItem4.setText("Ventas");
+        jMenuItem4.setText("Inventario");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem4);
 
         jMenuBar1.add(jMenu3);
@@ -623,8 +646,11 @@ public class Principal extends javax.swing.JFrame {
         try {
             if (facturaVali.crear(factura)) {
                 JOptionPane.showMessageDialog(null, "Exito");
+            } else {
+                JOptionPane.showMessageDialog(null, "Error");
             }
         } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error : " + e.getMessage());
         }
 
 
@@ -637,6 +663,11 @@ public class Principal extends javax.swing.JFrame {
     private void cbTarjetaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTarjetaActionPerformed
         pagotarjeta = cbTarjeta.isSelected();
     }//GEN-LAST:event_cbTarjetaActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        inventarios nuevo= new inventarios();
+        nuevo.iniciar();
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments

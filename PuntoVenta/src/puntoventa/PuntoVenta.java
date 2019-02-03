@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package puntoventa;
+
 import Vistas.Principal;
 
 /**
@@ -19,6 +20,6 @@ public class PuntoVenta {
         // TODO code application logic here
         Principal vista = new Principal();
         vista.setVisible(true);
+
     }
-    
 }

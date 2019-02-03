@@ -64,8 +64,55 @@ public class ProductoBD {
         return lista;
     }
 
-    public Producto buscarNombre(String nombre) {
-        return null;
+    public LinkedList<Producto> buscarNombre(String nombre) {
+         LinkedList<Producto> lista = new LinkedList<>();
+        try (Connection con = Conexion.iniciar()) {
+            String sql = "select * from desarrollo.producto where descripcion like ?";
+            PreparedStatement smt = con.prepareStatement(sql);
+            smt.setString(1, "%"+nombre+"%");
+            ResultSet resultadoBD = smt.executeQuery();
+            while (resultadoBD.next()) {
+                Producto nuevo = new Producto();
+                nuevo.setId(resultadoBD.getInt("id"));
+                nuevo.setCodigo(resultadoBD.getString("codigo"));
+                nuevo.setDescripcion(resultadoBD.getString("descripcion"));
+                nuevo.setPrecio_compra(resultadoBD.getDouble("precio_compra"));
+                nuevo.setPrecio_venta(resultadoBD.getDouble("precio_venta"));
+                nuevo.setImpuestos(resultadoBD.getBoolean("impuestos"));
+                nuevo.setPorcentaje_ganancia(resultadoBD.getDouble("porcentaje_ganancia"));
+                nuevo.setCantidad(resultadoBD.getInt("cantidad"));
+
+                lista.add(nuevo);
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        return lista;
+    }
+    public LinkedList<Producto> buscarCodigo(String codigo) {
+         LinkedList<Producto> lista = new LinkedList<>();
+        try (Connection con = Conexion.iniciar()) {
+            String sql = "select * from desarrollo.producto where codigo like ?";
+            PreparedStatement smt = con.prepareStatement(sql);
+            smt.setString(1, codigo+"%");
+            ResultSet resultadoBD = smt.executeQuery();
+            while (resultadoBD.next()) {
+                Producto nuevo = new Producto();
+                nuevo.setId(resultadoBD.getInt("id"));
+                nuevo.setCodigo(resultadoBD.getString("codigo"));
+                nuevo.setDescripcion(resultadoBD.getString("descripcion"));
+                nuevo.setPrecio_compra(resultadoBD.getDouble("precio_compra"));
+                nuevo.setPrecio_venta(resultadoBD.getDouble("precio_venta"));
+                nuevo.setImpuestos(resultadoBD.getBoolean("impuestos"));
+                nuevo.setPorcentaje_ganancia(resultadoBD.getDouble("porcentaje_ganancia"));
+                nuevo.setCantidad(resultadoBD.getInt("cantidad"));
+
+                lista.add(nuevo);
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        return lista;
     }
 
     public boolean modificar(Producto nuevo) throws SQLException, Exception {
